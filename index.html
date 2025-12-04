@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台北熱門床墊體驗店預約方式總表 (含HOLD-ON/Emma)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans TC', sans-serif; }
+        .reservation-link { transition: all 0.2s; }
+        .reservation-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .desktop-table { display: block; }
+        .mobile-cards { display: none; }
+        @media screen and (max-width: 768px),
+               screen and (max-device-width: 768px),
+               screen and (hover: none) and (pointer: coarse) {
+            .desktop-table { display: none !important; }
+            .mobile-cards { display: block !important; }
+        }
+        .mobile-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+        }
+        .mobile-card.walk-in {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border-color: #86efac;
+        }
+        .mobile-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        .mobile-card-brand {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #111827;
+        }
+        .mobile-card-location {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-top: 4px;
+        }
+        .mobile-card-info {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e5e7eb;
+        }
+        .address-toggle {
+            cursor: pointer;
+            color: #6b7280;
+            font-size: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 4px;
+            transition: color 0.2s;
+        }
+        .address-toggle:hover { color: #374151; }
+        .address-detail {
+            display: none;
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: #f9fafb;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: #374151;
+        }
+        .address-detail.show { display: block; }
+        .address-detail a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+        .address-detail a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 p-6 md:p-10">
+    <div class="max-w-6xl mx-auto">
+        <header class="mb-8 text-center md:text-left">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">台北熱門床墊體驗店預約方式總表</h1>
+            <p class="text-gray-500">彙整台北市主要預約制、推薦預約及熱門免預約門市資訊</p>
+        </header>
+
+        <div class="desktop-table overflow-x-auto bg-white rounded-xl shadow-lg border border-gray-200">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+                        <th class="py-4 px-6 font-bold">品牌名稱</th>
+                        <th class="py-4 px-6 font-bold">門市 / 區域</th>
+                        <th class="py-4 px-6 font-bold">預約制度</th>
+                        <th class="py-4 px-6 font-bold">預約方式 / 連結 / 備註</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody" class="text-gray-700 text-sm"></tbody>
+            </table>
+        </div>
+
+        <div id="mobileCards" class="mobile-cards"></div>
+
+        <div class="mt-4 text-xs text-gray-400 text-center">
+            * 點擊藍色按鈕可直接開啟預約頁面。LINE ID 需於 LINE App 中搜尋。
+        </div>
+    </div>
+
+    <script>
+        const brands = [
+            {
+                name: "Simmons 席夢思",
+                locations: "1. 台北民生館 (松山)\n2. 台北安和館 (大安)\n3. 內湖紐約家具館",
+                type: "walk-in",
+                status: "免預約 (Walk-in)",
+                note: "直接前往即可",
+                detail: "一般營業時間皆開放參觀",
+                addresses: [
+                    { name: "台北民生館", url: "https://maps.google.com/?q=台北市松山區民生東路5段80號", text: "台北市松山區民生東路5段80號", desc: "位於民生社區中心，捷運民生社區中心" },
+                    { name: "台北安和館", url: "https://maps.google.com/?q=台北市大安區安和路一段123號", text: "台北市大安區安和路一段123號", desc: "捷運信義安和站" },
+                    { name: "內湖紐約家具館", url: "https://maps.google.com/?q=台北市內湖區湖尤路128巷15號", text: "台北市內湖區湖尤路128巷15號", desc: "鄰近內湖貴場區（近 Costco/大灣筑），建議開車或搭乘公車抵達" }
+                ]
+            },
+            {
+                name: "HOLD-ON 舉重床",
+                locations: "古亭門市 (中正/大安)",
+                type: "walk-in",
+                status: "免預約 (Walk-in)",
+                note: "直接前往即可",
+                detail: "週三公休",
+                addresses: [
+                    { name: "古亭門市", url: "https://maps.google.com/?q=台北市中正區羅斯福路二段168號2樓", text: "台北市中正區羅斯福路二段168號2樓", desc: "捷運古亭站 2 號出口旁" }
+                ]
+            },
+            {
+                name: "德國 Emma",
+                locations: "竣樂家居 (大安/大同)",
+                type: "walk-in",
+                status: "免預約 (Walk-in)",
+                note: "直接前往 (僅限竣樂家居)",
+                detail: "大安店09:00開門 / 若去設計公司據點則需預約",
+                addresses: [
+                    { name: "竣樂家居", url: "https://maps.google.com/?q=台北市大安區信義路二段68號1樓", text: "台北市大安區信義路二段68號1樓", desc: "捷運東門站 3 號出口，步行約 3 分鐘" }
+                ]
+            },
+            {
+                name: "眠豆腐 (Sleepy Tofu)",
+                locations: "台北旗艦店 (大安)",
+                type: "walk-in",
+                status: "免預約 (Walk-in)",
+                note: "直接前往即可",
+                detail: "12:00-20:00",
+                addresses: [
+                    { name: "台北旗艦店", url: "https://maps.google.com/?q=台北市大安區復興南路一段358號", text: "台北市大安區復興南路一段358號", desc: "捷運大安站 6 號出口，步行約 3 分鐘" }
+                ]
+            },
+            {
+                name: "眠豆腐 (Sleepy Tofu)",
+                locations: "辛亥體驗店 (大安)",
+                type: "appointment",
+                status: "全預約制",
+                reservationLink: { text: "官網預約 (需選「此預約體驗」)", url: "https://www.sleepytofu.com/store" },
+                addresses: [
+                    { name: "辛亥體驗店", url: "https://maps.google.com/?q=台北市大安區辛亥路二段119號", text: "台北市大安區辛亥路二段119號", desc: "捷運科技大樓站，步行約 8-10 分鐘" }
+                ]
+            },
+            {
+                name: "覺醒家居 (Awake Living)",
+                locations: "大安 / 信義體驗店",
+                type: "appointment",
+                status: "全預約制",
+                reservationLink: { text: "官網預約系統", url: "https://www.awakeliving.tw/pages/retail" },
+                addresses: [
+                    { name: "大安體驗店", url: "https://maps.google.com/?q=台北市大安區忠孝東路四段170巷17弄3-1號", text: "台北市大安區忠孝東路四段170巷17弄3-1號", desc: "捷運忠孝敦化站 3 號出口，步行約 3 分鐘" },
+                    { name: "信義體驗店", url: "https://maps.google.com/?q=台北市信義區松德路25巷35號", text: "台北市信義區松德路25巷35號", desc: "捷運永春站 4 號出口，步行約 6 分鐘" }
+                ]
+            },
+            {
+                name: "SoulMatt",
+                locations: "舒眠體驗空間 (信義)",
+                type: "appointment",
+                status: "全預約制",
+                reservationLink: { text: "線上表單 (專人回電)", url: "https://reurl.cc/nDa5Yv", buttonColor: "bg-purple-600 hover:bg-purple-700" },
+                addresses: [
+                    { name: "舒眠體驗空間", url: "https://maps.google.com/?q=台北市信義區松德路180巷8號1樓", text: "台北市信義區松德路180巷8號1樓", desc: "捷運永春站 4 號出口 / 象山站 3 號出口，步行皆約 10 分鐘" }
+                ]
+            },
+            {
+                name: "ZZ Sleeper (忘憂枕)",
+                locations: "合作物理治療所",
+                type: "appointment",
+                status: "全預約制",
+                reservationLink: { text: "SimplyBook 預約", url: "https://zzsleepertw.simplybook.asia/v2/", buttonColor: "bg-teal-600 hover:bg-teal-700" },
+                addresses: [
+                    { name: "中山區", url: "https://maps.google.com/?q=台北市中山區建國北路一段148號", text: "台北市中山區建國北路一段148號", desc: "捷運松江南京站" },
+                    { name: "大安區", url: "https://maps.google.com/?q=台北市大安區信義路四段151號", text: "台北市大安區信義路四段151號", desc: "捷運信義安和站" }
+                ],
+                note: "地點依系統分配，常見據點："
+            },
+            {
+                name: "晚安奈特 (Late Night)",
+                locations: "體驗概念店 (中山)",
+                type: "recommend",
+                status: "雙軌制 (推薦預約)",
+                reservationLink: { text: "線上預約系統 (獨立包廂)", url: "https://isnight.tw/pages/booking", buttonColor: "bg-gray-800 hover:bg-gray-900" },
+                addresses: [
+                    { name: "體驗概念店", url: "https://maps.google.com/?q=台北市中山區龍江路42號", text: "台北市中山區龍江路42號", desc: "捷運南京復興站 2 號出口，步行約 5 分鐘" }
+                ]
+            },
+            {
+                name: "ÓLIVE 自然睡眠計劃",
+                locations: "信義門市",
+                type: "appointment",
+                status: "預約制",
+                reservationLink: { text: "Inline 線上訂位", url: "https://inline.app/booking/-NcRJr07MoXOfpbivqm1:inline-live-3/-NcRJrD4UQHk2oGXwhmY", buttonColor: "bg-orange-500 hover:bg-orange-600" },
+                addresses: [
+                    { name: "信義門市", url: "https://maps.google.com/?q=台北市信義區永吉路73號1樓", text: "台北市信義區永吉路73號1樓", desc: "捷運市政府站 4 號出口，步行約 8-10 分鐘" }
+                ]
+            },
+            {
+                name: "Lunio",
+                locations: "台北門市 (大安)",
+                type: "recommend",
+                status: "推薦預約",
+                reservationLink: { text: "官網快速預約", url: "https://lunio.com.tw/storefront/taipei/", buttonColor: "bg-blue-500 hover:bg-blue-600" },
+                addresses: [
+                    { name: "台北門市", url: "https://maps.google.com/?q=台北市大安區敦化南路一段176號", text: "台北市大安區敦化南路一段176號", desc: "捷運忠孝敦化站 8 號出口，步行約 2 分鐘" }
+                ]
+            },
+            {
+                name: "LoveFu (樂眠)",
+                locations: "板橋睡眠體驗店",
+                type: "recommend",
+                status: "推薦預約",
+                reservationLink: { text: "YouCanBookMe 預約", url: "https://lovefuhome-banqiao.youcanbook.me/", buttonColor: "bg-indigo-500 hover:bg-indigo-600" },
+                addresses: [
+                    { name: "板橋睡眠體驗店", url: "https://maps.google.com/?q=新北市板橋區雙十路二段110號", text: "新北市板橋區雙十路二段110號", desc: "捷運江子翠站 4 號出口，步行約 2-3 分鐘" }
+                ]
+            },
+            {
+                name: "仙度瑞拉 (Cinderella)",
+                locations: "內湖 / 永和 / 天母",
+                type: "recommend",
+                status: "推薦預約 (LINE)",
+                lineIds: { "內湖": "@oju9953m", "永和": "@kxa3059v", "天母": "@889gzuet" },
+                addresses: [
+                    { name: "內湖門市", url: "https://maps.google.com/?q=台北市內湖區康樂街110巷21號", text: "台北市內湖區康樂街110巷21號", desc: "捷運東湖站，步行約 12-15 分鐘" },
+                    { name: "永和門市", url: "https://maps.google.com/?q=新北市永和區中山路一段47號", text: "新北市永和區中山路一段47號", desc: "捷運頂溪站 1 號出口，步行約 8-10 分鐘" },
+                    { name: "天母門市", url: "https://maps.google.com/?q=台北市士林區忠誠路一段23號", text: "台北市士林區忠誠路一段23號", desc: "捷運芝山站 2 號出口，步行約 10 分鐘" }
+                ]
+            },
+            {
+                name: "GAGU Sleep",
+                locations: "中山體驗店",
+                type: "recommend",
+                status: "推薦預約",
+                phone: "(02) 2559-8809",
+                addresses: [
+                    { name: "中山體驗店", url: "https://maps.google.com/?q=台北市大同區南京西路62號15樓", text: "台北市大同區南京西路62號15樓", desc: "捷運中山站 6 號出口，右轉皇翔中山大樓" }
+                ]
+            }
+        ];
+
+        function getStatusColor(type) {
+            const colors = {
+                "walk-in": "bg-green-100 text-green-700",
+                "appointment": "bg-red-100 text-red-700",
+                "recommend": "bg-blue-100 text-blue-800"
+            };
+            return colors[type] || colors.appointment;
+        }
+
+        function getBgColor(type) {
+            return type === "walk-in" ? "hover:bg-green-50 bg-green-50/30" : "hover:bg-gray-50";
+        }
+
+        function toggleAddress(id) {
+            const el = document.getElementById(id);
+            const arrow = document.getElementById('arrow-' + id);
+            if (el.classList.contains('show')) {
+                el.classList.remove('show');
+                arrow.textContent = '▼';
+            } else {
+                el.classList.add('show');
+                arrow.textContent = '▲';
+            }
+        }
+
+        function renderTableRows() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = brands.map((brand, idx) => {
+                const statusColor = getStatusColor(brand.type);
+                const bgColor = getBgColor(brand.type);
+                const addrId = `addr-${idx}`;
+                
+                let reservationHtml = '';
+                if (brand.reservationLink) {
+                    const btnColor = brand.reservationLink.buttonColor || "bg-blue-600 hover:bg-blue-700";
+                    reservationHtml = `<a href="${brand.reservationLink.url}" target="_blank" class="reservation-link inline-block ${btnColor} text-white py-2 px-4 rounded text-xs font-bold no-underline">${brand.reservationLink.text}</a>`;
+                } else if (brand.lineIds) {
+                    reservationHtml = `<div class="flex flex-col gap-2 text-xs">
+                        ${Object.entries(brand.lineIds).map(([city, id]) => `<span class="bg-green-50 text-green-700 px-2 py-1 rounded">${city}: ${id}</span>`).join('')}
+                    </div>`;
+                } else if (brand.phone) {
+                    reservationHtml = `<span class="text-gray-600">電話: ${brand.phone}<br>或 FB 私訊</span>`;
+                } else {
+                    reservationHtml = `<span class="text-gray-600 font-bold">${brand.note}</span><br><span class="text-xs text-gray-500">${brand.detail}</span>`;
+                }
+
+                const addressesHtml = brand.addresses.map(addr => 
+                    `<strong>${addr.name}：</strong><br><a href="${addr.url}" target="_blank">📍 ${addr.text}</a><br>${addr.desc}`
+                ).join('<br><br>');
+
+                return `<tr class="border-b border-gray-200 ${bgColor}">
+                    <td class="py-4 px-6 font-medium ${brand.type === 'walk-in' ? 'text-green-900' : ''}">${brand.name}</td>
+                    <td class="py-4 px-6">${brand.locations.split('\n').map(l => `<div>${l}</div>`).join('')}</td>
+                    <td class="py-4 px-6"><span class="${statusColor} py-1 px-3 rounded-full text-xs font-bold">${brand.status}</span></td>
+                    <td class="py-4 px-6">
+                        ${reservationHtml}
+                        ${brand.addresses ? `<span class="address-toggle" onclick="toggleAddress('${addrId}')"><span id="arrow-${addrId}">▼</span> 詳細地址</span>
+                        <div id="${addrId}" class="address-detail">${brand.note ? `${brand.note}<br><br>` : ''}${addressesHtml}</div>` : ''}
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function renderMobileCards() {
+            const container = document.getElementById('mobileCards');
+            container.innerHTML = brands.map((brand, idx) => {
+                const addrId = `m-addr-${idx}`;
+                const isWalkIn = brand.type === "walk-in";
+                
+                let reservationHtml = '';
+                if (brand.reservationLink) {
+                    const btnColor = brand.reservationLink.buttonColor || "bg-blue-600 hover:bg-blue-700";
+                    reservationHtml = `<a href="${brand.reservationLink.url}" target="_blank" class="reservation-link inline-block ${btnColor} text-white py-2 px-4 rounded text-sm font-bold no-underline w-full text-center">${brand.reservationLink.text}</a>`;
+                } else if (brand.lineIds) {
+                    reservationHtml = `<div class="text-sm text-gray-600 mb-2">LINE 預約：</div>
+                    <div class="flex flex-col gap-2 text-sm">
+                        ${Object.entries(brand.lineIds).map(([city, id]) => `<span class="bg-green-50 text-green-700 px-3 py-2 rounded">📍 ${city}: ${id}</span>`).join('')}
+                    </div>`;
+                } else if (brand.phone) {
+                    reservationHtml = `<div class="text-gray-700">📞 電話: <a href="tel:${brand.phone.replace(/[^0-9]/g, '')}" class="text-blue-600 font-bold">${brand.phone}</a><br><span class="text-sm text-gray-500">或 FB 私訊</span></div>`;
+                } else {
+                    reservationHtml = `<span class="text-gray-700 font-bold">${brand.note}</span><br><span class="text-xs text-gray-500">${brand.detail}</span>`;
+                }
+
+                const addressesHtml = brand.addresses.map(addr => 
+                    `<strong>${addr.name}：</strong><br><a href="${addr.url}" target="_blank">📍 ${addr.text}</a><br>${addr.desc}`
+                ).join('<br><br>');
+
+                return `<div class="mobile-card ${isWalkIn ? 'walk-in' : ''}">
+                    <div class="mobile-card-header">
+                        <div>
+                            <div class="mobile-card-brand ${isWalkIn ? 'text-green-900' : ''}">${brand.name}</div>
+                            <div class="mobile-card-location">${brand.locations.split('\n').map(l => `<div>${l}</div>`).join('')}</div>
+                        </div>
+                        <span class="${getStatusColor(brand.type)} py-1 px-3 rounded-full text-xs font-bold whitespace-nowrap">${brand.status.replace(' (Walk-in)', '').replace('全預約制', '全預約制')}</span>
+                    </div>
+                    <div class="mobile-card-info">
+                        ${reservationHtml}
+                        ${brand.addresses ? `<span class="address-toggle" onclick="toggleAddress('${addrId}')"><span id="arrow-${addrId}">▼</span> 詳細地址</span>
+                        <div id="${addrId}" class="address-detail">${brand.note && !brand.reservationLink && !brand.phone && !brand.lineIds ? `${brand.note}<br><br>` : ''}${addressesHtml}</div>` : ''}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            renderTableRows();
+            renderMobileCards();
+            
+            var isMobile = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+                           || window.innerWidth <= 768
+                           || ('ontouchstart' in window && window.innerWidth <= 1024);
+            
+            if (isMobile) {
+                document.querySelector('.desktop-table').style.display = 'none';
+                document.querySelector('.mobile-cards').style.display = 'block';
+            }
+        });
+        
+        window.addEventListener('resize', function() {
+            var isMobile = window.innerWidth <= 768;
+            document.querySelector('.desktop-table').style.display = isMobile ? 'none' : 'block';
+            document.querySelector('.mobile-cards').style.display = isMobile ? 'block' : 'none';
+        });
+    </script>
+</body>
+</html>
